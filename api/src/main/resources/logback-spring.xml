@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 로깅
+logging : 애플리캐이션이 동작하는 동안 시스템의 상태나 동작 정보를 시간순으로 기록하는것.
+
+
+비기능 요구사항이라 굳이 넣지 않아도 동작하는 것에는 이상이 없지만..
+
+
+디버깅하거나 문제를 해결할때 꼭 필요하기때문에 필수! 로 넣는 요소.
+
+
+SpringBoot 에서는 logging framwork 로 LogBack을 채택해 사용함.
+
+
+LogBack의 특징 -> 로그 레벨을 설정
+    크게 5개의 레벨을 설정할 수 있음
+        -ERROR : 로직 수행중에 시스템에 심각한 문제가 발생해서 실행이 불가능
+        -WARN : 시스템 에러의 원인이 될 수 있는 경고레벨
+        -INFO : 애플리케이션의 상태 변경과 같은 정보 전달
+        -DEBUG : 애플리케이션의 다버깅을 위한 메세지
+        -TRACE : DEBUG 레벨보다 더 상세한 메세지를 표현
+
+    실제 운영환경과 개발관경에서 각각 다른 출력 레벨을 설정해 로그를 확인 가능
+
+    LogBack의 설정파일을 일정 시간마다 스캔해서 애플리케이션을 재가동하지 않아도 설정변경이 가능
+
+    별도의 프로그램 지원없이 자체적으로 로그파일을 압출해줌
+
+    저장된 로그파일의 보관기간등을 설정해서 관리 가능
+
+-->
+
+
+<configuration>
+    <property name = "LOG_PATH" value="./logs"/>
+
+    <!-- Appenders -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name = "INFO_LOG" class = "ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${LOG_PATH}/info.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedFileNamingAndTriggeringPolicy">
+            <fileNamePattern>${LOG_PATH}/info_${type}.%d{yyyy-MM-dd}.gz}</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH-mm-ss.SSS}] [%-5level] [%thread] %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- Appender 영역 :
+        Appender 영역은 로그의 형태를 설정하고, 어떤 방법으로 출력할지를 결정.
+
+        여러가지 구현체를 상속받고 있음
+        ConsoleAppender : 콘솔에 로그 출력
+        FileAppender : 파일에 로그저장
+        RollingFileAppender : 여려개의 파일을 순회하면서 로그를 저장
+        DBAppender : 데이터 베이스에 로그를 저장 -->
+
+    <!-- filter :
+        appender 로 어던 방식으로 저장할지 지정했다면, filter 요소로 각 Appender가 어떤 레벨로
+            로그를 기록하는지 지정.
+            -->
+    <!-- Encoder 영역 :
+        로그의 표현형식을 패턴(pattern)으로 정의
+        %Logger{length} : 로거의 이름
+        %-5level : 로그레벨, -5는 출력 고정폭 값
+        %msg(%message) 로그 메세지
+
+        %d : 로그 기록 시간
+        %p : 로길 레벨
+        %F : 로깅이 발생한 애플리케이션 파일명
+        %M : 로깅이 발생한 메서드 이름
+        %I : 로깅이 발생한 호출지의 정보
+        %thread : 현제 스래드명
+        %t : 로깅이 발생한 스래드 명
+        %c : 로깅이 발생한 카테고리
+        %C : 로깅이 발생한 클래스명
+        %m : 로그 메세지
+        %n : 줄바꿈
+        %r : 애플리케시연 실행후 로깅이 발생한 시점 까지의 시간 -> Test할때 Good
+        %L : 로깅이 발생한 지점의 라인수
+        -->
+
+
+
+
+    <!--TRACE> DEBUG > INFO > WARN > ERROR > OFF -->
+    <!--Root Logger-->
+    <root level ="INFO">
+        <appender-ref ref = "console"/>
+        <appender-ref ref = "INFO_LOG"/>
+    </root>
+</configuration>
+<!-- Root 영역 :
+        설정 파일에서 정의된 Appender 을 활용 하려면 Root 영역에서
+            Appender 을 참조해서 로깅레벨을 설정 -->
+
+<!-- Use logger -->
+<!--
+    <logger name ="com.springboot.api.controller" level="DEBUG" additivity ="false">
+        <appender-ref ref="console"/>
+        <appender-ref ref="INFO_LOG"/>
+    </logger>
+
+뭐 이런식으로 특정한 패키지 반위로 로깅이 적용될 범위를 지정하고 level로 레벨을 지정
+additivity로 지정한 패키지 범위에 하위패키지를 포함할지 여부를 결정.(default = true)-->
+
